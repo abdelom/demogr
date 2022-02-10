@@ -8,8 +8,7 @@ import pandas as pd
 import seaborn as sns
 import multiprocessing as mp
 import math as mt
-from tqdm import tqdm
-from svgwrite import *
+import random as rd
 
 def linckage_desequilibrium(genotype_A_a, genotype_B_b):
     nb_sample = len(genotype_B_b)
@@ -42,15 +41,17 @@ def all_ld(variants, length):
     d1 = int(np.floor(length * (1 - np.sqrt(1 - 1 / 99))))
     f0 = (1 - d1 / length) ** 2
     a = f0 / 99
-    for variant1, variant2 in tqdm(it.combinations(variants, 2)):
+    # print(len(variants))
+    # print(len(variants) * (len(variants) - 1) / 2)
+    for variant1, variant2 in it.combinations(variants, 2):
         distance = int(variant2.site.position - variant1.site.position)
         ld = linckage_desequilibrium(variant1.genotypes, variant2.genotypes)
         index =  int(np.floor((f0 - (1 - distance / length) ** 2) / a + 1))
         ld_distance[index][0] += ld
         ld_distance[index][1] += distance
         ld_distance[index][2] += 1
-    return [total / count for total, _, count in ld_distance], \
-    [total / count for _, total, count in ld_distance]
+    return [total / count for total, _, count in ld_distance]#, \
+    # [total / count for _, total, count in ld_distance]
 
 
 # def all_ld(variants, sequence_length):
@@ -89,7 +90,7 @@ def length_mrf(breakpoints):
 #     return ld_bins
 
 
-def msprime_simulate_variants(params, tree=False, debug=False):
+def msprime_simulate_variants(params, debug=False):
     """
     copyrigth pierre
     Population simulation with msprime for SMC++ (msprime 1.x).
@@ -160,68 +161,127 @@ def msprime_simulate_variants(params, tree=False, debug=False):
     # SVG(ts.draw_svg(y_axis=True))
     list_snps = []
     # return ts.variants()
-    if tree == True:
-        return ts.breakpoints()
-
+    cmpt = 0
+    p = 1400 / len(list(ts.variants()))
     for variant in ts.variants():
-        if len(set(variant.genotypes)) > 1:
+        if len(set(variant.genotypes)) > 1 and rd.uniform(0, 1) < p:
+            cmpt += 1
             list_snps.append(variant)
-    return list_snps, ts.breakpoints()
+    return list_snps #, ts.breakpoints()
 
 
-def bar_plot(list_ld, title):
-    fig = plt.figure()
-    # sns.set_theme(style="whitegrid")
-    # ax = sns.barplot(x="sequence", y="ld", data=list_ld)
-    ax = fig.add_axes()
-    distance = range(101)
-
-    ax.bar(distance, list_ld)
-    plt.savefig(title)
-    plt.clf()
-
-
-def chi2(constant, params):
+def chi2(constant, params, kappa, tau):
+    params.update({"Tau": tau, "Kappa": kappa})
     chi2 = 0
-    variants, _ = msprime_simulate_variants(params)
+    variants = msprime_simulate_variants(params)
     variation = all_ld(variants, params["length"])
     for theoric, observed in  [*zip(constant, variation)]:
-        if theoric > 0.001:
-            chi2 += (observed - theoric) ** 2 / theoric
+        chi2 += (observed - theoric) ** 2 / theoric
     return (np.log10(params["Tau"]), np.log10(params["Kappa"]),
                           np.log10(chi2) if chi2 > 0.01  else -2)
 
-def LD_sequence(params):
-    d_kappa = {"Modèle déclin": 10, "Constant model": 1, "Modèle croissance": 0.1}
-    # l_data = {}
-    for power_ro in range(-3, -6, -1):
-        ld, length_nrb, parameters, distance = {}, {}, {}, {}
-        params.update({"ro": 8 * 10 ** power_ro})
+def LD_senario_ro(params, parameter="ro"):
+    print("hello world !")
+    d_kappa = {"Constant model": 1, "Modèle croissance": 0.1, "Modèle déclin": 10}
+    for power in range(-2, -5, -1):
+        ld, parameters, distance = {}, {}, {}
+        params.update({parameter: 8 * 10 ** power})
         for key, kappa in d_kappa.items():
             params.update({"Kappa": kappa, "Tau": 1})
+            start = time.time()
+            print(start)
+            variants, breakpoints = msprime_simulate_variants(params)
+            print("time: {}".format(time.time() - start))
+            ld[key], distance[key] = all_ld(variants, params["length"])
+            # length_nrb[key] = length_mrf(breakpoints)
+            parameters[key] = {k: v for k, v in params.items() if k in ['Tau', 'Kappa']}
+        plot_ld((ld, parameters, {k: v for k, v in params.items() if k not in ['Tau', 'Kappa']}),
+        "sce_ro/ld_int{}{}".format(power, parameter), True)
+        plot_ld((ld, parameters, {k: v for k, v in params.items() if k not in ['Tau', 'Kappa']}),
+        "sce_ro/ld_distance{}{}".format(power, parameter), True,  distance)
+        plot_ld((distance, parameters, {k: v for k, v in params.items() if k not in ['Tau', 'Kappa']}),
+        "sce_ro/distance_int{}{}".format(power, parameter), True)
+        # boxplot_length_mrf(length_nrb,
+        # "sce_ro/box_plot{}{}".format(power, parameter), True)
+    print("abdel")
+            # return ld, parameters, {k: v for k, v in params.items() if k not in ['Tau', 'Kappa']}
+
+
+def LD_mu_senario(params, parameter="mu"):
+    d_mu = {"big": -3, "normal": -4, "small": -5}
+    # l_data = {}
+    for kappa in range(-1, 2, 1):
+        params.update({"Kappa": 10 ** kappa, "Tau": 1})
+        ld, length_nrb, parameters, distance = {}, {}, {}, {}
+        for key, power in d_mu.items():
+            params.update({parameter: 8 * 10 ** power})
             variants, breakpoints = msprime_simulate_variants(params)
             ld[key], distance[key] = all_ld(variants, params["length"])
             length_nrb[key] = length_mrf(breakpoints)
             parameters[key] = {k: v for k, v in params.items() if k in ['Tau', 'Kappa']}
         plot_ld((ld, parameters, {k: v for k, v in params.items() if k not in ['Tau', 'Kappa']}),
-        "ld_int{}".format(power_ro), True)
+        "mu_sce/ld_int{}{}".format(power, parameter), True)
         plot_ld((ld, parameters, {k: v for k, v in params.items() if k not in ['Tau', 'Kappa']}),
-        "ld_distance{}".format(power_ro), True,  distance)
+        "mu_sce/ld_distance{}{}".format(power, parameter), True,  distance)
         plot_ld((distance, parameters, {k: v for k, v in params.items() if k not in ['Tau', 'Kappa']}),
-        "distance_int{}".format(power_ro), True)
+        "mu_sce/distance_int{}{}".format(power, parameter), True)
         boxplot_length_mrf(length_nrb,
-        "box_plot{}".format(power_ro), True)
-            # return ld, parameters, {k: v for k, v in params.items() if k not in ['Tau', 'Kappa']}
+        "mu_sce/box_plot{}{}".format(power, parameter), True)
+
+def contant_model(params, replicas):
+    params.update({"Kappa": 1, "Tau": 1})
+    ld_cumul, parameters = {"Constant model": np.zeros(100)}, {}
+    for index in range(replicas):
+        print(ld_cumul["Constant model"])
+        ld_cumul["Constant model"] += np.array(all_ld(msprime_simulate_variants(params), params["length"]))
+    parameters["Constant model"] = {k: v for k, v in params.items() if k in ['Tau', 'Kappa']}
+    ld_cumul["Constant model"] = ld_cumul["Constant model"] / replicas
+    # plot_ld((ld_cumul, parameters, {k: v for k, v in params.items() if k not in ['Tau', 'Kappa']}),
+    # "reference", True)
+    return ld_cumul["Constant model"]
+
+def data_heat_map(kappa_range, tau_range, params):
+    constant = contant_model(params, 100)
+    data = []
+    pool = mp.Pool(mp.cpu_count())
+    data = pool.starmap(chi2, [(constant, params, kappa, tau) for kappa, tau in it.product(kappa_range, tau_range)])
+    pool.close()
+    return pd.DataFrame.from_records(data, columns =['Tau', 'Kappa', 'Chi'])
+##############################################################################################################
+##############################################Heatmap#########################################################
+##############################################################################################################
+def ld_label(length, title, save=False):
+    """
+    Set up sfs caption, label and title.
+
+    Parameter
+    ---------
+    length: length of the SFS
+    title: title of the plot
+    """
+    # Caption
+    plt.legend(loc="upper right", fontsize="x-large")
+
+    # Label axis
+    if save:
+        plt.xlabel("distance", fontsize="xx-large")
+        plt.ylabel("linckage desequiibrium", fontsize="xx-large")
+    else:
+        plt.xlabel("distance", fontsize="x-large")
+        plt.ylabel("linckage_desequilibrium", fontsize="x-large")
+    # Title + show
+    plt.title(title, fontsize="xx-large", fontweight='bold', y=1.01)
+
 
 def boxplot_length_mrf(data, title_backup, save=False):
     fig = plt.figure(figsize=(12, 9))
-    print(data.values(), data.keys())
     plt.boxplot(data.values())
     plt.xticks([1, 2, 3], data.keys())
     if save:
-        plt.savefig('./boxplot{}.png'.format(title_backup), format='png', dpi=150)
-    plt.show()
+        plt.savefig('{}boxplot.png'.format(title_backup), format='png', dpi=150)
+
     plt.clf()
+
 
 def plot_ld(data, title_backup, save=False, abs=None):
     """
@@ -239,25 +299,20 @@ def plot_ld(data, title_backup, save=False, abs=None):
         If set to True save the plot in ./Figures/ld-shape
     """
     color = ["tab:blue", "tab:orange", "tab:red", "tab:green", "tab:gray"]
-    labels = ['Modèle constant', 'Modèle théorique constant', 'Modèle déclin',
-              'Modèle croissance']
+    labels = ['Modèle déclin', 'Modèle constant', 'Modèle croissance']
 
     # Set up plot
     plt.figure(figsize=(12, 9))  #, constrained_layout=True)
     cpt = 0
     for key, ld in data[0].items():
         # Label
-        label = labels[cpt] if save else key
-        if key == 'Theoretical model':
-            label += " - Fu, 1995"
-        elif not key == 'Constant model':
-            label += " - "
-            for param, value in data[1][key].items():
-                label += "{}={}".format(
-                    'τ' if param == 'Tau' else 'κ' if param == 'Kappa' else param, value
-                )
-                if param != list(data[1][key].keys())[-1]:
-                    label += ", "
+        label = key
+        for param, value in data[1][key].items():
+            label += "{}={}".format(
+                'τ' if param == 'Tau' else 'κ' if param == 'Kappa' else param, value
+            )
+            if param != list(data[1][key].keys())[-1]:
+                label += ", "
 
         # Plot
         if abs is None:
@@ -284,45 +339,7 @@ def plot_ld(data, title_backup, save=False, abs=None):
 
     if save:
         plt.savefig('{}.png'.format(title_backup), format='png', dpi=150)
-    plt.show()
     plt.clf()
-
-
-
-##############################################################################################################
-##############################################Heatmap#########################################################
-##############################################################################################################
-def ld_label(length, title, save=False):
-    """
-    Set up sfs caption, label and title.
-
-    Parameter
-    ---------
-    length: length of the SFS
-    title: title of the plot
-    """
-    # Caption
-    plt.legend(loc="upper right", fontsize="x-large")
-
-    # Label axis
-    if save:
-        plt.xlabel("distance", fontsize="xx-large")
-        plt.ylabel("linckage desequiibrium", fontsize="xx-large")
-    else:
-        plt.xlabel("distance", fontsize="x-large")
-        plt.ylabel("linckage_desequilibrium", fontsize="x-large")
-
-    # X axis values
-    xtick_pas = 1 if length <= 10 else 2 if length < 20 else length % 10 + 1
-
-    x_ax, x_values = [], []
-    for i in range(0, length, xtick_pas):
-        x_ax.append(i)
-        x_values.append("{}/{}".format(i+1, length+1))
-    plt.xticks(x_ax, x_values, fontsize="x-large")
-
-    # Title + show
-    plt.title(title, fontsize="xx-large", fontweight='bold', y=1.01)
 
 
 def heatmap_axis(ax, xaxis, yaxis, cbar, lrt=False):
@@ -421,46 +438,18 @@ def plot_heatmap(data, title, cbar, filout="heatmap.png", lrt=False):
     plt.plot()
 
 
-def data_heat_map(kappa_range, tau_range, params):
-    constant = all_ld(params)
-    data = []
-    pool = mp.Pool(mp.cpu_count())
-    data = pool.starmap(chi2, [(params, constant, kappa, tau) for kappa, tau in it.product(kappa_range, tau_range)])
-    pool.close()
-    return pd.DataFrame.from_records(data, columns =['Tau', 'Kappa', 'Chi'])
-
-
-#scenari = []
-# scenario[(kappa, tau)] = msprime_simulate_variants(params, debug=False)
-# params = {"sample_size":10, "Ne": 1, "ro": 8e-4, "mu": 8e-4, "Tau":3, "Kappa": 1, "length": 1e5}
-
-# data = []
-# for scenario in scenari:
-#     mts =  msprime_simulate_variants(scenario, debug=False)
-#     data.append((scenario["Tau"], scenario["Kappa"], chi2(constant, all_ld(mts, int(1e2) , 100000))))
-#
-# pkl.dump(data, "out")
-#start = time.time()
-#print(time.time() - start)
-
-
 def main():
-    # params = {"sample_size":10, "Ne": 1, "ro": 8e-4, "mu": 8e-4,  "Tau": 1.0, "length": 1e5}
-    # kappa_range = np.exp(np.arange(-4, 2.8, 0.1))
-    # tau_range= np.exp(np.arange(-3.5, 2.3, 0.1))
-    # data  = data_heat_map(kappa_range, tau_range, params)
-    # lang = 'fr'
-    # if lang == 'fr':
-    #     title = "log(chi2) entre M0 et M1 pour différents τ & κ"
-    #     cbar = "log(chi2)"
-    # else:
-    #     title = "Log likelihood ratio test for various τ & κ (M0 & M1)"
-    #     cbar = "Significant log-likelihood ratio test"
-    # print(data)
+    params = {"sample_size":10, "Ne": 1, "ro": 8e-3, "mu": 8e-3,  "Tau": 1.0, "length": int(1e5)}
+    kappa_range = np.exp(np.arange(-4, 2.8, 0.1))
+    tau_range= np.exp(np.arange(-3.5, 2.3, 0.1))
+    data  = data_heat_map(kappa_range, tau_range, params)
+    data.to_csv("./data_ht", index=False)
     # plot_heatmap(data=data, title=title, cbar=cbar, filout='heatmap_test.png')
        # pkl.dump(generat_senar(params), "out")
-     params = {"sample_size":10, "Ne": 1, "ro": 8e-4, "mu": 8e-4,  "Tau": 1.0, "length": int(1e5)}
-     LD_sequence(params)
+     # params = {"sample_size":10, "Ne": 1, "ro": 8e-2, "mu": 8e-3,  "Tau": 1.0, "length": int(1e5)}
+     # LD_senario_ro(params, "ro")
+     # LD_mu_senario(params, "mu")
+
      # print(data)
 
 
