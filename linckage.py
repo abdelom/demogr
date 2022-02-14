@@ -114,6 +114,7 @@ def length_mrf(breakpoints):
 
 
 def sfs(params):
+    print(sfs, params["sample_size"])
     sfs = [0 for i in range(params["sample_size"])]
     variants = msprime_simulate_variants(params).variants()
     for variant in variants:
