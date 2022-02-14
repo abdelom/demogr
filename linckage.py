@@ -9,6 +9,7 @@ import seaborn as sns
 import multiprocessing as mp
 import math as mt
 import random as rd
+import sys
 
 def msprime_simulate_variants(params, debug=False):
     """
@@ -183,13 +184,14 @@ def data_heat_map(type, kappa_range, tau_range, params):
 
 
 def senario(type, params):
+    d_type = {"sfs": sfs, "ld": ld}
     d_kappa = {"Constant model": 1, "Modèle croissance": 0.1, "Modèle déclin": 10}
     for power in range(-2, -5, -1):
         data, parameters = {}, {}
         params.update({"ro": 8 * 10 ** power})
         for key, kappa in d_kappa.items():
             params.update({"Kappa": kappa, "Tau": 1})
-            data[key] = replications(type, params, 100)
+            data[key] = replications(d_type[type], params, 100)
             parameters[key] = {k: v for k, v in params.items() if k in ['Tau', 'Kappa']}
     return data, parameters, {k: v for k, v in params.items() if k not in ['Tau', 'Kappa']}
         # plot_ld((ld, parameters, {k: v for k, v in params.items() if k not in ['Tau', 'Kappa']}),
@@ -224,8 +226,3 @@ def senario(type, params):
 #         boxplot_length_mrf(length_nrb,
 #         "mu_sce/box_plot{}{}".format(power, parameter), True)
 
-
-
-
-if __name__ == "__main__":
-    sys.exit()

@@ -24,8 +24,7 @@ def ld_label(length, data):
     ).format(data[2]['Ne'], data[2]['mu'], data[2]['ro'], data[2]['length'])
     plt.title(title, fontsize="xx-large", fontweight='bold', y=1.01)
 
-
-def sfs_label(length, title, save=False):
+def sfs_label(length, data):
     """
     Set up sfs caption, label and title.
 
@@ -94,7 +93,7 @@ def plot_dist(type, data, out, save=False):
 
     # Label, caption and title
 
-    "{}_label".format(type)(length=len(ld), data)
+    sfs_label(len(elem), data) if type == "sfs" else ld_label(len(elem), data)
 
     if save:
         plt.savefig('{}.png'.format(title_backup), format='png', dpi=150)
@@ -193,7 +192,3 @@ def plot_heatmap(data, title, cbar, filout="heatmap.png", lrt=False):
 
     plt.savefig(filout, format='png', dpi=150)
     plt.plot()
-
-
-if __name__ == "__main__":
-    sys.exit()
