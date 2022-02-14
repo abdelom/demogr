@@ -24,7 +24,7 @@ def main():
     params = {"sample_size": 10, "Ne": 1, "ro": 8e-3, "mu": 8e-3,  "Tau": 1.0,
     "Kappa": 1.0 , "length": int(1e5), "type": "ld"}
     data_ld = lk.senario(args.type, params)
-    plt.plot_dist((data_ld, parameters, {k: v for k, v in params.items() if k not in ['Tau', 'Kappa']}),
+    plt.plot_dist(data_ld,
     "{}{}".format(power, args.type), True)
     # kappa_range = np.exp(np.arange(-3.5, 2.8, 0.1))
     # tau_range = np.exp(np.arange(-4, 2.3, 0.1))

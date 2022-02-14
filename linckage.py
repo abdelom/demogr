@@ -68,7 +68,7 @@ def msprime_simulate_variants(params, debug=False):
     # Simulation of ancestry
     ts = ms.sim_ancestry(
         samples=int(params['sample_size'] / 2), demography=demography, ploidy=2,
-        sequence_length=params['length'], discrete_genome=True,
+        sequence_length=params['length'], discrete_genome=False,
         recombination_rate=params['ro']
     )
 
@@ -225,4 +225,3 @@ def senario(type, params):
 #         "mu_sce/distance_int{}{}".format(power, parameter), True)
 #         boxplot_length_mrf(length_nrb,
 #         "mu_sce/box_plot{}{}".format(power, parameter), True)
-
