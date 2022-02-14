@@ -26,10 +26,10 @@ def main():
     data_ld = lk.senario(args.type, params)
     plt.plot_dist(data_ld,
     "{}{}".format(power, args.type), True)
-    # kappa_range = np.exp(np.arange(-3.5, 2.8, 0.1))
-    # tau_range = np.exp(np.arange(-4, 2.3, 0.1))
-    # data  = lk.data_heat_map(args.type, kappa_range, tau_range, params)
-    # data.to_csv(args.output_file, index=False)
+    kappa_range = np.exp(np.arange(-3.5, 2.8, 0.1))
+    tau_range = np.exp(np.arange(-4, 2.3, 0.1))
+    data  = lk.data_heat_map(args.type, kappa_range, tau_range, params)
+    data.to_csv(args.output_file, index=False)
     # plot_heatmap(data=data, title=title, cbar=cbar, filout='heatmap_test.png')
     # pkl.dump(generat_senar(params), "out")
      # params = {"sample_size":10, "Ne": 1, "ro": 8e-2, "mu": 8e-3,  "Tau": 1.0, "length": int(1e5)}
