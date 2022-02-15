@@ -27,11 +27,13 @@ def get_arguments():
 
 def main():
     args = get_arguments()
-
+    print("e")
     if args.output_ht is not None:
+        print("a")
         data = pd.read_csv(args.data_ht)
         plt.plot_heatmap(data=data, title="", cbar="", filout=args.output_ht)
     else:
+        print("b")
         params = {"sample_size": 10, "Ne": 1, "ro": 8e-3, "mu": 8e-3,  "Tau": 1.0,
         "Kappa": 1.0 , "length": int(1e5), "type": "ld"}
         data_ld = lk.senario(args.type, params)

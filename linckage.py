@@ -114,11 +114,11 @@ def length_mrf(breakpoints):
 
 
 def sfs(params):
-    print(sfs, params["sample_size"])
     sfs = [0 for i in range(params["sample_size"])]
+    print(sfs, params["sample_size"])
     variants = msprime_simulate_variants(params).variants()
     for variant in variants:
-        sfs[sum(variant.genotypes)] += 1
+        sfs[sum(variant.genotypes) - 1] += 1
     return np.array(sfs) / params["sample_size"]
 
 
@@ -146,7 +146,8 @@ def ld(params):
 
 
 def replications(type, params, replicas):
-    ld_cumul = np.zeros(100)
+    size = params["sample_size"] if type == sfs else 100
+    ld_cumul = np.zeros(size)
     for index in range(replicas):
         ld_cumul += np.array(type(params))
     ld_cumul = ld_cumul / replicas
