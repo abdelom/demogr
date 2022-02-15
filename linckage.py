@@ -146,6 +146,7 @@ def ld(params):
 
 
 def replications(type, params, replicas):
+    print("aa")
     size = params["sample_size"] if type == sfs else 100
     ld_cumul = np.zeros(size)
     for index in range(replicas):
@@ -169,7 +170,7 @@ def chi2(type, params, kappa, tau):
     params.update({"Tau": tau, "Kappa": kappa})
     constant = params["constant"]
     chi2 = 0
-    variation = replications(type, params, 200)
+    variation = replications(type, params, 20)
     for theoric, observed in  [*zip(constant, variation)]:
         chi2 += (observed - theoric) ** 2 / theoric
     return (np.log10(params["Tau"]), np.log10(params["Kappa"]),
@@ -194,7 +195,7 @@ def senario(type, params):
         params.update({"ro": 8 * 10 ** power})
         for key, kappa in d_kappa.items():
             params.update({"Kappa": kappa, "Tau": 1})
-            data[key] = replications(d_type[type], params, 200)
+            data[key] = replications(d_type[type], params, 10)
             parameters[key] = {k: v for k, v in params.items() if k in ['Tau', 'Kappa']}
     return data, parameters, {k: v for k, v in params.items() if k not in ['Tau', 'Kappa']}
         # plot_ld((ld, parameters, {k: v for k, v in params.items() if k not in ['Tau', 'Kappa']}),
