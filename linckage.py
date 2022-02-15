@@ -149,6 +149,7 @@ def replications(type, params, replicas):
     size = params["sample_size"] if type == sfs else 100
     ld_cumul = np.zeros(size)
     for index in range(replicas):
+        print(index)
         ld_cumul += np.array(type(params))
     ld_cumul = ld_cumul / replicas
     # parameters = {k: v for k, v in params.items() if k in ['Tau', 'Kappa']}
@@ -168,7 +169,7 @@ def chi2(type, params, kappa, tau):
     params.update({"Tau": tau, "Kappa": kappa})
     constant = params["constant"]
     chi2 = 0
-    variation = replications(type, params, 20)
+    variation = replications(type, params, 200)
     for theoric, observed in  [*zip(constant, variation)]:
         chi2 += (observed - theoric) ** 2 / theoric
     return (np.log10(params["Tau"]), np.log10(params["Kappa"]),
@@ -187,13 +188,13 @@ def data_heat_map(type, kappa_range, tau_range, params):
 
 def senario(type, params):
     d_type = {"sfs": sfs, "ld": ld}
-    d_kappa = {"Constant model": 1, "Modèle croissance": 0.1, "Modèle déclin": 10}
+    d_kappa = {"Constant": 1, "en Croissance": 0.1, "en Déclin": 10}
     for power in range(-2, -5, -1):
         data, parameters = {}, {}
         params.update({"ro": 8 * 10 ** power})
         for key, kappa in d_kappa.items():
             params.update({"Kappa": kappa, "Tau": 1})
-            data[key] = replications(d_type[type], params, 100)
+            data[key] = replications(d_type[type], params, 200)
             parameters[key] = {k: v for k, v in params.items() if k in ['Tau', 'Kappa']}
     return data, parameters, {k: v for k, v in params.items() if k not in ['Tau', 'Kappa']}
         # plot_ld((ld, parameters, {k: v for k, v in params.items() if k not in ['Tau', 'Kappa']}),
