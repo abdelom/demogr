@@ -170,7 +170,7 @@ def chi2(type, params, kappa, tau):
     params.update({"Tau": tau, "Kappa": kappa})
     constant = params["constant"]
     chi2 = 0
-    variation = replications(type, params, 20)
+    variation = replications(type, params, 100)
     for theoric, observed in  [*zip(constant, variation)]:
         chi2 += (observed - theoric) ** 2 / theoric
     return (np.log10(params["Tau"]), np.log10(params["Kappa"]),
@@ -178,7 +178,7 @@ def chi2(type, params, kappa, tau):
 
 
 def data_heat_map(type, kappa_range, tau_range, params):
-    constant = replications(type, params, 200)
+    constant = replications(type, params, 100)
     params.update({"constant": constant})
     data = []
     pool = mp.Pool(mp.cpu_count())
