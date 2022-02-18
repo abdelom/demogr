@@ -116,10 +116,12 @@ def length_mrf(breakpoints):
 def sfs(params):
     sfs = [0 for i in range(params["sample_size"])]
     print(sfs, params["sample_size"])
+    np_snps = 0
     variants = msprime_simulate_variants(params).variants()
     for variant in variants:
+        np_snps += 1
         sfs[sum(variant.genotypes) - 1] += 1
-    return np.array(sfs) / params["sample_size"]
+    return np.array(sfs) / nb_snps
 
 
 def ld(params):
