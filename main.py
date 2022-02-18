@@ -27,7 +27,7 @@ def get_arguments():
 
 
 def main():
-    d_type = {"sfs": sfs, "ld": ld}
+    d_type = {"sfs": lk.sfs, "ld": lk.ld}
     args = get_arguments()
     if args.output_ht is not None:
         data = pd.read_csv(args.data_ht)
