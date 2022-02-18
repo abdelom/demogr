@@ -55,7 +55,7 @@ def boxplot_length_mrf(data, title_backup, save=False):
     plt.clf()
 
 
-def plot_dist(type, data, out, save=False):
+def plot_dist(type, data, title_backup, save=False):
     """
     Graphic representation of Site Frequency Spectrum (SFS), save to the folder ./Figures.
 
