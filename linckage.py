@@ -188,7 +188,6 @@ def data_heat_map(type, kappa_range, tau_range, params):
 
 
 def senario(type, params):
-    d_type = {"sfs": sfs, "ld": ld}
     d_kappa = {"Constant": 1, "en Croissance": 0.1, "en Déclin": 10}
     for power in range(-2, -5, -1):
         data, parameters = {}, {}
