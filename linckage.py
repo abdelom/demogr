@@ -75,6 +75,7 @@ def msprime_simulate_variants(params, debug=False):
     # Mutation model to use - binary mutation model
     #   - Allele ["0", "1"]
     #   - Root distribution [1., 0.], i.e. all ancestral states will be 0
+
     mutation_model = ms.BinaryMutationModel(state_independent=False)
 
     # Genetic variation of the data with mutation
@@ -114,14 +115,13 @@ def length_mrf(breakpoints):
 
 
 def sfs(params):
-    sfs = [0 for i in range(params["sample_size"])]
+    sfs = [0 for i in range(params["sample_size"] - 1)]
     print(sfs, params["sample_size"])
-    nb_snps = 0
     variants = msprime_simulate_variants(params).variants()
     for variant in variants:
-        nb_snps += 1
-        sfs[sum(variant.genotypes) - 1] += 1
-    return np.array(sfs) / nb_snps
+        if len(set(variant.genotypes)) > 1:
+            sfs[sum(variant.genotypes) - 1] += 1
+    return np.array([ele / sum(sfs) for ele in sfs])
 
 
 def ld(params):
