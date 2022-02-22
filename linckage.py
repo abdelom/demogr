@@ -152,7 +152,6 @@ def replications(type, params, replicas):
     size = params["sample_size"] - 1  if type == sfs else 100
     ld_cumul = np.zeros(size)
     for index in range(replicas):
-        print(index)
         ld_cumul += np.array(type(params))
     ld_cumul = ld_cumul / replicas
     # parameters = {k: v for k, v in params.items() if k in ['Tau', 'Kappa']}
@@ -169,6 +168,7 @@ def replications(type, params, replicas):
 
 
 def chi2(type, params, kappa, tau):
+    print(kappa, tau)
     params.update({"Tau": tau, "Kappa": kappa})
     constant = params["constant"]
     chi2 = 0
