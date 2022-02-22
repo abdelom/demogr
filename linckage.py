@@ -149,7 +149,7 @@ def ld(params):
 
 def replications(type, params, replicas):
     print("aa")
-    size = params["sample_size"] if type == sfs else 100
+    size = params["sample_size"] - 1  if type == sfs else 100
     ld_cumul = np.zeros(size)
     for index in range(replicas):
         print(index)
@@ -184,7 +184,7 @@ def data_heat_map(type, kappa_range, tau_range, params):
     params.update({"constant": constant})
     data = []
     pool = mp.Pool(mp.cpu_count())
-    data = pool.starmap(chi2, [(type, params, kappa, tau) for kappa, tau in it.product(kappa_range, tau_range)])
+    data = pool.starmap(chi2, [(type, params, 10 ** kappa, 10 ** tau) for kappa, tau in it.product(kappa_range, tau_range)])
     pool.close()
     return pd.DataFrame.from_records(data, columns = ['Tau', 'Kappa', 'Chi'])
 
