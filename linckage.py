@@ -116,7 +116,6 @@ def length_mrf(breakpoints):
 
 def sfs(params):
     sfs = [0 for i in range(params["sample_size"] - 1)]
-    print(sfs, params["sample_size"])
     variants = msprime_simulate_variants(params).variants()
     for variant in variants:
         if len(set(variant.genotypes)) > 1:
@@ -172,7 +171,7 @@ def chi2(type, params, kappa, tau):
     params.update({"Tau": tau, "Kappa": kappa})
     constant = params["constant"]
     chi2 = 0
-    variation = replications(type, params, 100)
+    variation = replications(type, params, 1)
     for theoric, observed in  [*zip(constant, variation)]:
         chi2 += (observed - theoric) ** 2 / theoric
     return (np.log10(params["Tau"]), np.log10(params["Kappa"]),
@@ -180,7 +179,7 @@ def chi2(type, params, kappa, tau):
 
 
 def data_heat_map(type, kappa_range, tau_range, params):
-    constant = replications(type, params, 100)
+    constant = replications(type, params, 1)
     params.update({"constant": constant})
     data = []
     pool = mp.Pool(mp.cpu_count())

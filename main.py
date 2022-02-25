@@ -24,6 +24,7 @@ def get_arguments():
     parser.add_argument('-d', dest='data_ht', type=str,
                         default=None,
                         help="Output contigs in fasta file")
+    parser.add_argument('-s', dest="senario", action='store_true')
     return parser.parse_args()
 
 
@@ -37,16 +38,17 @@ def main():
         start = time.time()
         params = {"sample_size": 10, "Ne": 1, "ro": 8e-3, "mu": 8e-3,  "Tau": 1.0,
         "Kappa": 1.0 , "length": int(1e5), "type": "ld"}
-        data_ld = lk.senario(d_type[args.type], params)
-        print(time.time() - start)
-        plt.plot_dist(args.type, data_ld,
-        "scenario_{}".format(args.type), True)
-        print(time.time() - start)
-        kappa_range = np.exp(np.arange(-3.5, 2.8, 0.1))
-        tau_range = np.exp(np.arange(-4, 2.3, 0.1))
-        data  = lk.data_heat_map(d_type[args.type], kappa_range, tau_range, params)
-        print(time.time() - start)
-        data.to_csv(args.output_file, index=False)
+        if args.senario:
+            data_ld = lk.senario(d_type[args.type], params)
+            print(time.time() - start)
+            plt.plot_dist(args.type, data_ld,
+            "scenario_{}".format(args.type), True)
+        else:
+            kappa_range = np.exp(np.arange(-3.5, 2.8, 0.1))
+            tau_range = np.exp(np.arange(-4, 2.3, 0.1))
+            data  = lk.data_heat_map(d_type[args.type], kappa_range, tau_range, params)
+            print(time.time() - start)
+            data.to_csv(args.output_file, index=False)
     # pkl.dump(generat_senar(params), "out")
      # params = {"sample_size":10, "Ne": 1, "ro": 8e-2, "mu": 8e-3,  "Tau": 1.0, "length": int(1e5)}
      # LD_senario_ro(params, "ro")
