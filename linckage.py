@@ -83,8 +83,8 @@ def msprime_simulate_variants(params, debug=False, save = True):
     if save:
         n_dip_indv = int(ts.num_samples / 2)
         indv_names = [f"tsk_{str(i)}indv" for i in range(n_dip_indv)]
-        with open(f"VCF/simul_{params["Tau"]}_{params["Kappa"]}.vcf", "w") as vcf_file:
-            ts.write_vcf(vcf_file, ploidy=2, individual_names=indv_names)
+        with open(f"VCF/simul_{params['Tau']}_{params['Kappa']}.vcf", "w") as vcf_file:
+            ts.write_vcf(vcf_file, individual_names=indv_names)
     return ts
 
 
@@ -153,7 +153,7 @@ def ld(params):
 
 
 def replications(type, params, replicas):
-    print(f"Tau : {params["Tau"]}, Kappa : {params["Kappa"]}")
+    print(f"Tau : {params['Tau']}, Kappa : {params['Kappa']}")
     size = params["sample_size"] - 1  if type == sfs else 100
     ld_cumul = np.zeros(size)
     for index in range(replicas):
