@@ -80,11 +80,11 @@ def msprime_simulate_variants(params, debug=False, save = True):
 
     # Genetic variation of the data with mutation
     ts = ms.sim_mutations(tree_sequence=ts, rate=params['mu'], model=mutation_model)
-    if save:
-        n_dip_indv = int(ts.num_samples / 2)
-        indv_names = [f"tsk_{str(i)}indv" for i in range(n_dip_indv)]
-        with open(f"VCF/simul_{params['Tau']}_{params['Kappa']}.vcf", "w") as vcf_file:
-            ts.write_vcf(vcf_file, individual_names=indv_names)
+    # if save:
+    #     n_dip_indv = int(ts.num_samples / 2)
+    #     indv_names = [f"tsk_{str(i)}indv" for i in range(n_dip_indv)]
+    #     with open(f"VCF/simul_{params['Tau']}_{params['Kappa']}.vcf", "w") as vcf_file:
+    #         ts.write_vcf(vcf_file, individual_names=indv_names)
     return ts
 
 
