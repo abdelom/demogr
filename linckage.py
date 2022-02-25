@@ -11,7 +11,7 @@ import math as mt
 import random as rd
 import sys
 
-def msprime_simulate_variants(params, debug=False):
+def msprime_simulate_variants(params, debug=False, save = True):
     """
     copyrigth pierre
     Population simulation with msprime for SMC++ (msprime 1.x).
@@ -79,7 +79,13 @@ def msprime_simulate_variants(params, debug=False):
     mutation_model = ms.BinaryMutationModel(state_independent=False)
 
     # Genetic variation of the data with mutation
-    return ms.sim_mutations(tree_sequence=ts, rate=params['mu'], model=mutation_model)
+    ts = ms.sim_mutations(tree_sequence=ts, rate=params['mu'], model=mutation_model)
+    if save:
+        n_dip_indv = int(ts.num_samples / 2)
+        indv_names = [f"tsk_{str(i)}indv" for i in range(n_dip_indv)]
+        with open(f"VCF/simul_{params["Tau"]}_{params["Kappa"]}.vcf", "w") as vcf_file:
+            ts.write_vcf(vcf_file, ploidy=2, individual_names=indv_names)
+    return ts
 
 
 # def nb_pair_distance(variants, params):
@@ -147,7 +153,7 @@ def ld(params):
 
 
 def replications(type, params, replicas):
-    print("aa")
+    print(f"Tau : {params["Tau"]}, Kappa : {params["Kappa"]}")
     size = params["sample_size"] - 1  if type == sfs else 100
     ld_cumul = np.zeros(size)
     for index in range(replicas):
