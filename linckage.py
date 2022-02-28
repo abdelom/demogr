@@ -185,11 +185,16 @@ def chi2(type, params, kappa, tau):
 
 
 def data_heat_map(type, kappa_range, tau_range, params):
+    # for elem in it.product(kappa_range, tau_range):
+    #     print(elem)
+    for kappa in kappa_range:
+        print(kappa)
+    print(len(list(it.product(kappa_range, tau_range))))
     constant = replications(type, params, 1)
     params.update({"constant": constant})
     data = []
     pool = mp.Pool(mp.cpu_count())
-    data = pool.starmap(chi2, [(type, params, 10 ** kappa, 10 ** tau) for kappa, tau in it.product(kappa_range, tau_range)])
+    data = pool.starmap(chi2, [(type, params, 10 ** kappa, 10 ** tau) for  kappa, tau in it.product(kappa_range, tau_range)])
     pool.close()
     return pd.DataFrame.from_records(data, columns = ['Tau', 'Kappa', 'Chi'])
 

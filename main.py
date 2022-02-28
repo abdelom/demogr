@@ -42,10 +42,10 @@ def main():
             data_ld = lk.senario(d_type[args.type], params)
             print(time.time() - start)
             plt.plot_dist(args.type, data_ld,
-            "scenario_{}".format(args.type), True)
+            "Figure/scenario_{}".format(args.type), True)
         else:
-            kappa_range = np.exp(np.arange(-3.5, 2.8, 0.1))
-            tau_range = np.exp(np.arange(-4, 2.3, 0.1))
+            kappa_range = np.arange(-3.5, 2.8, 0.1)
+            tau_range = np.arange(-4, 2.3, 0.1)
             data  = lk.data_heat_map(d_type[args.type], kappa_range, tau_range, params)
             print(time.time() - start)
             data.to_csv(args.output_file, index=False)
