@@ -79,7 +79,8 @@ def msprime_simulate_variants(params, debug=False, save = True):
     mutation_model = ms.BinaryMutationModel(state_independent=False)
 
     # Genetic variation of the data with mutation
-    ts = ms.sim_mutations(tree_sequence=ts, rate=params['mu'], model=mutation_model)
+    ts = ms.sim_mutations(tree_sequence=ts, rate=params['mu'], model=mutation_model,
+    discrete_genome=False)
     # if save:
     #     n_dip_indv = int(ts.num_samples / 2)
     #     indv_names = [f"tsk_{str(i)}indv" for i in range(n_dip_indv)]
@@ -138,6 +139,7 @@ def ld(params):
     list_snps = []
     variants = list(variants)
     p = 1400 / len(variants)
+    print(len(variants))
     for variant in variants:
         if len(set(variant.genotypes)) > 1 and rd.uniform(0, 1) < p:
             list_snps.append(variant)
@@ -173,29 +175,28 @@ def replications(type, params, replicas):
 
 
 def chi2(type, params, kappa, tau):
-    print(kappa, tau)
     params.update({"Tau": tau, "Kappa": kappa})
     constant = params["constant"]
     chi2 = 0
-    variation = replications(type, params, 1)
+    variation = replications(type, params, 25)
     for theoric, observed in  [*zip(constant, variation)]:
         chi2 += (observed - theoric) ** 2 / theoric
-    return (np.log10(params["Tau"]), np.log10(params["Kappa"]),
+    return (np.log(params["Tau"]), np.log(params["Kappa"]),
                           np.log10(chi2))
 
 
 def data_heat_map(type, kappa_range, tau_range, params):
     # for elem in it.product(kappa_range, tau_range):
     #     print(elem)
-    for kappa in kappa_range:
-        print(kappa)
     print(len(list(it.product(kappa_range, tau_range))))
-    constant = replications(type, params, 1)
+    constant = replications(type, params, 100)
     params.update({"constant": constant})
     data = []
-    pool = mp.Pool(mp.cpu_count())
-    data = pool.starmap(chi2, [(type, params, 10 ** kappa, 10 ** tau) for  kappa, tau in it.product(kappa_range, tau_range)])
-    pool.close()
+    for kappa, tau in it.product(kappa_range, tau_range):
+        data.append(chi2(type, params, kappa, tau))
+    #pool = mp.Pool(1)
+    #data = pool.starmap(chi2, [(type, params, kappa, tau) for  kappa, tau in it.product(kappa_range, tau_range)])
+    #pool.close()
     return pd.DataFrame.from_records(data, columns = ['Tau', 'Kappa', 'Chi'])
 
 
@@ -206,7 +207,7 @@ def senario(type, params):
         params.update({"ro": 8 * 10 ** power})
         for key, kappa in d_kappa.items():
             params.update({"Kappa": kappa, "Tau": 1})
-            data[key] = replications(type, params, 10)
+            data[key] = replications(type, params, 50)
             parameters[key] = {k: v for k, v in params.items() if k in ['Tau', 'Kappa']}
     return data, parameters, {k: v for k, v in params.items() if k not in ['Tau', 'Kappa']}
         # plot_ld((ld, parameters, {k: v for k, v in params.items() if k not in ['Tau', 'Kappa']}),
