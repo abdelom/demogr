@@ -178,7 +178,7 @@ def chi2(type, params, kappa, tau):
     params.update({"Tau": tau, "Kappa": kappa})
     constant = params["constant"]
     chi2 = 0
-    variation = replications(type, params, 25)
+    variation = replications(type, params, 2)
     for theoric, observed in  [*zip(constant, variation)]:
         chi2 += (observed - theoric) ** 2 / theoric
     return (np.log(params["Tau"]), np.log(params["Kappa"]),
@@ -189,7 +189,7 @@ def data_heat_map(type, kappa_range, tau_range, params):
     # for elem in it.product(kappa_range, tau_range):
     #     print(elem)
     print(len(list(it.product(kappa_range, tau_range))))
-    constant = replications(type, params, 100)
+    constant = replications(type, params, 10)
     params.update({"constant": constant})
     data = []
     for kappa, tau in it.product(kappa_range, tau_range):
@@ -207,7 +207,7 @@ def senario(type, params):
         params.update({"ro": 8 * 10 ** power})
         for key, kappa in d_kappa.items():
             params.update({"Kappa": kappa, "Tau": 1})
-            data[key] = replications(type, params, 50)
+            data[key] = replications(type, params, 50 )
             parameters[key] = {k: v for k, v in params.items() if k in ['Tau', 'Kappa']}
     return data, parameters, {k: v for k, v in params.items() if k not in ['Tau', 'Kappa']}
         # plot_ld((ld, parameters, {k: v for k, v in params.items() if k not in ['Tau', 'Kappa']}),
